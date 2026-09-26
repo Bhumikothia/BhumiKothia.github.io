@@ -7,12 +7,15 @@ import Icon from '../components/Icon.astro';
 import Todo from '../components/Todo.astro';
 import { getProfile } from '../lib/data';
 import { formatDate } from '../lib/format';
+import { resolveImage } from '../lib/uploads';
 
 const { data: profile } = await getProfile();
 const entries = (await getCollection('beyond', ({ data }) => !data.draft)).sort(
   (a, b) => (b.data.date?.getTime() ?? 0) - (a.data.date?.getTime() ?? 0),
 );
-const rendered = await Promise.all(entries.map(async (e) => ({ entry: e, Content: (await render(e)).Content })));
+const rendered = await Promise.all(
+  entries.map(async (e) => ({ entry: e, photo: resolveImage(e.data.photo), Content: (await render(e)).Content })),
+);
 const kindLabel = { outreach: 'Outreach', volunteering: 'Volunteering', hobby: 'Hobby', mentoring: 'Mentoring', other: 'Other' } as const;
 ---
 
@@ -22,11 +25,11 @@ const kindLabel = { outreach: 'Outreach', volunteering: 'Volunteering', hobby: '
   <div class="container-page py-14">
     {rendered.length > 0 ? (
       <div class="grid gap-6 sm:grid-cols-2">
-        {rendered.map(({ entry, Content }) => (
+        {rendered.map(({ entry, photo, Content }) => (
           <article id={entry.id} class="card overflow-hidden">
-            {entry.data.photo && (
+            {photo && (
               <Image
-                src={entry.data.photo}
+                src={photo}
                 alt={entry.data.photoAlt ?? ''}
                 widths={[480, 720, 960]}
                 sizes="(min-width: 640px) 30rem, 100vw"

@@ -11,8 +11,10 @@ import { getProfile, getPublications, getRecognition, getStats, getTalks, plural
 import { formatRange, formatDate, href } from '../lib/format';
 import { roleLabel } from '../lib/jsonld';
 import type { PhotoKey } from '../lib/images';
+import { resolveImage } from '../lib/uploads';
 
 const { data: profile } = await getProfile();
+const headshot = resolveImage(profile.photo);
 const pubs = await getPublications();
 const featured = pubs.filter((p) => p.data.featured).slice(0, 3);
 const talks = (await getTalks()).slice(0, 3);
@@ -61,8 +63,8 @@ const description = `${profile.name} (published as ${profile.publishedAs}) is a 
       </div>
 
       <div class="mx-auto w-72 sm:w-80 md:w-full">
-        <MicroscopeField src={profile.photo} alt={profile.photoAlt} />
-        {!profile.photo && <Todo text="Add a headshot (see profile.md); it will replace the micrograph here." />}
+        <MicroscopeField src={headshot} alt={profile.photoAlt ?? `Portrait of ${profile.name}`} />
+        {!headshot && <Todo text="Add a headshot (see profile.md); it will replace the micrograph here." />}
       </div>
     </div>
   </section>

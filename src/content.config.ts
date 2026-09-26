@@ -26,8 +26,7 @@ const datePrecision = z.enum(['day', 'month', 'year']).default('day');
 
 const profile = defineCollection({
   loader: glob({ pattern: '*.md', base: './src/content/profile' }),
-  schema: ({ image }) =>
-    z.object({
+  schema: z.object({
       name: z.string(),
       publishedAs: z.string().optional(),
       alternateNames: z.array(z.string()).default([]),
@@ -46,7 +45,7 @@ const profile = defineCollection({
         url: z.url().optional(),
         ror: z.url().optional(),
       }),
-      photo: image().optional(),
+      photo: z.string().optional(), // e.g. "/src/assets/images/bhumi-headshot.jpg"
       photoAlt: z.string().optional(),
       cv: z.string().optional(), // path under public/, e.g. "/cv/Bhumi-Kabariya-CV.pdf"
       links: z.object({
@@ -59,7 +58,7 @@ const profile = defineCollection({
       shortBio: z.string(),
       researchInterests: z.array(z.string()),
       keywords: z.array(z.string()).default([]),
-    }),
+  }),
 });
 
 const pages = defineCollection({
@@ -90,14 +89,14 @@ const publications = defineCollection({
     datePrecision,
     venue: z.string(), // journal, repository, magazine, or "Independently published"
     publisher: z.string().optional(),
-    volume: z.string().optional(),
-    issue: z.string().optional(),
-    pages: z.string().optional(),
-    version: z.string().optional(),
+    volume: z.coerce.string().optional(),
+    issue: z.coerce.string().optional(),
+    pages: z.coerce.string().optional(),
+    version: z.coerce.string().optional(),
     doi: z.string().optional(), // bare DOI, e.g. "10.13005/bbra/3537"
-    accession: z.string().optional(), // GenBank / database accession
-    isbn: z.string().optional(),
-    asin: z.string().optional(),
+    accession: z.coerce.string().optional(), // GenBank / database accession
+    isbn: z.coerce.string().optional(),
+    asin: z.coerce.string().optional(),
     url: z.url().optional(),
     license: z.string().optional(),
     featured: z.boolean().default(false),
@@ -210,16 +209,15 @@ const skills = defineCollection({
 
 const beyond = defineCollection({
   loader: glob({ pattern: '*.md', base: './src/content/beyond' }),
-  schema: ({ image }) =>
-    z.object({
+  schema: z.object({
       title: z.string(),
       kind: z.enum(['outreach', 'volunteering', 'hobby', 'mentoring', 'other']),
       date: z.coerce.date().optional(),
-      photo: image().optional(),
+      photo: z.string().optional(), // e.g. "/src/assets/images/beyond/photo.jpg"
       photoAlt: z.string().optional(),
       link: link.optional(),
       draft: z.boolean().default(false),
-    }),
+  }),
 });
 
 export const collections = {

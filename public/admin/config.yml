@@ -1,0 +1,467 @@
+# yaml-language-server: $schema=https://unpkg.com/@sveltia/cms/schema/sveltia-cms.json
+#
+# Website editor (Sveltia CMS) — opens at /admin/
+# Every "Save" commits the change to GitHub; the site rebuilds in ~2 minutes.
+# Fields mirror the rules in src/content.config.ts. Keep the two in sync.
+
+backend:
+  name: github
+  repo: BhumiKothia/BhumiKothia.github.io
+  branch: main
+  # Sign in with a GitHub access token (no OAuth server needed). See EDITING.md.
+  auth_methods: [token]
+  commit_messages:
+    create: 'Add {{collection}} “{{slug}}”'
+    update: 'Update {{collection}} “{{slug}}”'
+    delete: 'Delete {{collection}} “{{slug}}”'
+    uploadMedia: 'Upload “{{path}}”'
+    deleteMedia: 'Delete “{{path}}”'
+
+site_url: https://bhumikothia.github.io/
+display_url: https://bhumikothia.github.io/
+
+# Default upload folder (evidence PDFs, certificates). Collections override it below.
+media_folder: /public/evidence
+public_folder: /evidence
+
+output:
+  # Leave unfilled optional fields out of the files, so the site's validation passes.
+  omit_empty_optional_fields: true
+
+slug:
+  encoding: ascii
+  clean_accents: true
+
+collections:
+  # ───────────────────────── Profile & pages ─────────────────────────
+  - name: profile
+    label: Profile & bio
+    description: Name, headline, links, bios and headshot. Shown on Home, About and Contact.
+    icon: person
+    files:
+      - name: profile
+        label: Profile
+        file: src/content/profile/profile.md
+        media_folder: /src/assets/images/profile
+        public_folder: /src/assets/images/profile
+        fields:
+          - { name: name, label: Name, widget: string }
+          - { name: publishedAs, label: Published as, widget: string, required: false }
+          - name: alternateNames
+            label: Other names used in publications
+            widget: list
+            required: false
+            field: { name: name, label: Name, widget: string }
+          - { name: pronouns, label: Pronouns, widget: string, required: false }
+          - { name: headline, label: Headline, widget: string, hint: 'e.g. Ph.D. Researcher in Environmental Science' }
+          - { name: tagline, label: One-line research statement (Home page), widget: text }
+          - name: location
+            label: Location
+            widget: object
+            fields:
+              - { name: city, label: City, widget: string }
+              - { name: region, label: State / region, widget: string }
+              - { name: country, label: Country code, widget: string, hint: 'e.g. US' }
+              - { name: display, label: As shown on the site, widget: string, hint: 'e.g. Richmond, Virginia, USA' }
+          - name: affiliation
+            label: Affiliation
+            widget: object
+            fields:
+              - { name: name, label: University, widget: string }
+              - { name: department, label: Department / institute, widget: string, required: false }
+              - { name: url, label: Website, widget: string, required: false }
+              - { name: ror, label: ROR link, widget: string, required: false }
+          - name: photo
+            label: Headshot
+            widget: image
+            required: false
+            hint: Square photo, at least 800×800 px. Replaces the micrograph on the Home page.
+          - { name: photoAlt, label: Headshot description (for screen readers), widget: string, required: false }
+          - name: cv
+            label: CV (PDF)
+            widget: file
+            required: false
+            media_folder: /public/cv
+            public_folder: /cv
+            hint: Upload a version WITHOUT phone number or home address.
+          - name: links
+            label: Research profiles
+            widget: object
+            fields:
+              - { name: googleScholar, label: Google Scholar, widget: string, required: false }
+              - { name: orcid, label: ORCID, widget: string, required: false }
+              - { name: linkedin, label: LinkedIn, widget: string, required: false }
+              - { name: researchgate, label: ResearchGate, widget: string, required: false }
+          - { name: availability, label: Open to (Contact & About pages), widget: text, required: false }
+          - { name: shortBio, label: Short bio, widget: text, hint: '2–4 sentences. Used at the top of About and in search results.' }
+          - name: researchInterests
+            label: Research interests
+            widget: list
+            field: { name: interest, label: Interest, widget: string }
+          - name: keywords
+            label: Search keywords
+            widget: list
+            required: false
+            field: { name: keyword, label: Keyword, widget: string }
+          - { name: body, label: Long bio (About page), widget: richtext }
+
+      - name: research
+        label: Research page
+        file: src/content/pages/research.md
+        fields:
+          - { name: title, label: Title, widget: string }
+          - { name: description, label: Search-result description, widget: text }
+          - name: body
+            label: Page text
+            widget: richtext
+            hint: Only describe PUBLISHED work. No unpublished thesis results, figures or isolate data.
+
+  # ───────────────────────── Publications ─────────────────────────
+  - name: publications
+    label: Publications & datasets
+    label_singular: Publication
+    description: Journal articles, books, datasets, GenBank sequences and other writing.
+    icon: menu_book
+    folder: src/content/publications
+    extension: md
+    format: frontmatter
+    create: true
+    slug: '{{fields.date | date(''YYYY'')}}-{{title}}'
+    identifier_field: title
+    summary: '{{fields.date | date(''YYYY'')}} · {{title}}'
+    sortable_fields: [date, title, type]
+    view_filters:
+      - { label: Journal articles, field: type, pattern: journal-article }
+      - { label: Datasets, field: type, pattern: dataset }
+      - { label: GenBank sequences, field: type, pattern: sequence }
+      - { label: Books, field: type, pattern: book }
+    fields:
+      - { name: title, label: Title (exactly as published), widget: string }
+      - name: type
+        label: Type
+        widget: select
+        options:
+          - { label: Journal article, value: journal-article }
+          - { label: Conference paper, value: conference-paper }
+          - { label: Book, value: book }
+          - { label: Book chapter, value: book-chapter }
+          - { label: Dataset, value: dataset }
+          - { label: GenBank / sequence, value: sequence }
+          - { label: Magazine article, value: magazine }
+          - { label: Preprint, value: preprint }
+      - { name: peerReviewed, label: Peer-reviewed, widget: boolean, default: false, required: false }
+      - name: authors
+        label: Authors (in published order)
+        widget: list
+        hint: 'Format: Family, Given, e.g. "Kothia, Bhumi A."'
+        field: { name: author, label: Author, widget: string }
+      - { name: date, label: Publication date, widget: datetime, type: date, format: YYYY-MM-DD }
+      - name: datePrecision
+        label: Show date as
+        widget: select
+        default: day
+        required: false
+        options:
+          - { label: 'Day (26 June 2026)', value: day }
+          - { label: 'Month (June 2026)', value: month }
+          - { label: 'Year (2026)', value: year }
+      - { name: venue, label: 'Journal / repository / venue', widget: string }
+      - { name: publisher, label: Publisher, widget: string, required: false }
+      - { name: volume, label: Volume, widget: string, required: false }
+      - { name: issue, label: Issue, widget: string, required: false }
+      - { name: pages, label: Pages, widget: string, required: false, hint: 'e.g. 767–775' }
+      - { name: version, label: Version (datasets), widget: string, required: false, hint: 'e.g. V1' }
+      - { name: doi, label: DOI, widget: string, required: false, hint: 'Just the DOI, e.g. 10.13005/bbra/3537 (no https://doi.org/)' }
+      - { name: accession, label: Accession number (GenBank), widget: string, required: false }
+      - { name: isbn, label: ISBN, widget: string, required: false }
+      - { name: asin, label: Amazon ASIN, widget: string, required: false }
+      - { name: url, label: Link, widget: string, required: false, hint: 'Only needed if there is no DOI' }
+      - { name: license, label: Licence, widget: string, required: false, hint: 'e.g. CC BY 4.0' }
+      - { name: featured, label: Feature on Home page, widget: boolean, default: false, required: false }
+      - { name: note, label: Internal note, widget: text, required: false }
+      - { name: draft, label: Hide from site (draft), widget: boolean, default: false, required: false }
+
+  # ───────────────────────── Talks ─────────────────────────
+  - name: talks
+    label: Conferences & talks
+    label_singular: Talk
+    description: Oral and poster presentations. Future dates show as "Upcoming" automatically.
+    icon: podium
+    folder: src/content/talks
+    extension: md
+    format: frontmatter
+    create: true
+    slug: '{{fields.startDate | date(''YYYY-MM'')}}-{{fields.eventShort}}'
+    identifier_field: title
+    summary: '{{fields.startDate | date(''YYYY-MM-DD'')}} · {{fields.eventShort}} · {{title}}'
+    sortable_fields: [startDate, title]
+    fields:
+      - { name: title, label: Title of the talk or poster, widget: string }
+      - name: role
+        label: Role
+        widget: select
+        options:
+          - { label: Oral presentation, value: oral }
+          - { label: Poster presentation, value: poster }
+          - { label: Keynote, value: keynote }
+          - { label: Invited talk, value: invited }
+          - { label: Session chair, value: session-chair }
+          - { label: Panelist, value: panelist }
+          - { label: Attendee, value: attendee }
+      - { name: event, label: Conference name, widget: string }
+      - { name: eventShort, label: Short name, widget: string, required: false, hint: 'e.g. ICMBT-2024' }
+      - { name: organizer, label: Organiser, widget: string, required: false }
+      - name: location
+        label: Location
+        widget: object
+        fields:
+          - { name: venue, label: Venue, widget: string, required: false }
+          - { name: city, label: City, widget: string, required: false }
+          - { name: region, label: State / region, widget: string, required: false }
+          - { name: country, label: Country, widget: string, required: false }
+      - name: mode
+        label: Attendance
+        widget: select
+        required: false
+        options:
+          - { label: In person, value: in-person }
+          - { label: Virtual, value: virtual }
+          - { label: Hybrid, value: hybrid }
+      - { name: startDate, label: Start date, widget: datetime, type: date, format: YYYY-MM-DD }
+      - { name: endDate, label: End date (multi-day events), widget: datetime, type: date, format: YYYY-MM-DD, required: false }
+      - name: links
+        label: Links (programme, abstract)
+        widget: list
+        required: false
+        fields:
+          - { name: label, label: Label, widget: string }
+          - { name: url, label: URL, widget: string }
+      - name: evidence
+        label: Evidence (certificate, acceptance letter)
+        widget: list
+        required: false
+        fields:
+          - { name: label, label: Label, widget: string }
+          - { name: url, label: Web link, widget: string, required: false }
+          - { name: archivedUrl, label: Archived copy (web.archive.org), widget: string, required: false }
+          - { name: file, label: File (PDF / image), widget: file, required: false, hint: Remove personal details before uploading. }
+      - { name: draft, label: Hide from site (draft), widget: boolean, default: false, required: false }
+
+  # ───────────────────────── Recognition ─────────────────────────
+  - name: recognition
+    label: Recognition & service
+    label_singular: Recognition entry
+    description: Awards, grants, peer review, judging, memberships, media. Each needs at least one piece of evidence.
+    icon: workspace_premium
+    folder: src/content/recognition
+    extension: md
+    format: frontmatter
+    create: true
+    slug: '{{fields.date | date(''YYYY'')}}-{{title}}'
+    identifier_field: title
+    summary: '{{fields.date | date(''YYYY-MM'')}} · {{title}}'
+    sortable_fields: [date, title, category]
+    fields:
+      - { name: title, label: Title, widget: string }
+      - name: category
+        label: Category
+        widget: select
+        options:
+          - { label: Award / honour, value: award }
+          - { label: Grant, value: grant }
+          - { label: Fellowship, value: fellowship }
+          - { label: Peer review, value: peer-review }
+          - { label: Judging, value: judging }
+          - { label: Editorial role, value: editorial }
+          - { label: Membership, value: membership }
+          - { label: Media mention, value: media }
+          - { label: Invited role, value: invited-role }
+      - { name: issuer, label: Awarding / inviting organisation, widget: string }
+      - { name: issuerUrl, label: Organisation website, widget: string, required: false }
+      - { name: date, label: Date, widget: datetime, type: date, format: YYYY-MM-DD }
+      - name: datePrecision
+        label: Show date as
+        widget: select
+        default: day
+        required: false
+        options:
+          - { label: Day, value: day }
+          - { label: Month, value: month }
+          - { label: Year, value: year }
+      - { name: endDate, label: 'End date (memberships, roles)', widget: datetime, type: date, format: YYYY-MM-DD, required: false }
+      - { name: summary, label: 'Summary (factual, 1–2 sentences)', widget: text }
+      - name: evidence
+        label: Evidence
+        widget: list
+        min: 1
+        hint: At least one link or file that proves this entry.
+        fields:
+          - { name: label, label: Label, widget: string }
+          - { name: url, label: Web link, widget: string, required: false }
+          - { name: archivedUrl, label: Archived copy (web.archive.org), widget: string, required: false }
+          - { name: file, label: File (PDF / image), widget: file, required: false, hint: Remove personal details before uploading. }
+      - { name: draft, label: Hide from site (draft), widget: boolean, default: false, required: false }
+
+  # ───────────────────────── Education & experience ─────────────────────────
+  - name: education
+    label: Education
+    label_singular: Degree
+    icon: school
+    folder: src/content/education
+    extension: md
+    format: frontmatter
+    create: true
+    slug: '{{degree}}-{{institution}}'
+    identifier_field: degree
+    summary: '{{degree}}, {{field}}'
+    fields:
+      - { name: degree, label: Degree, widget: string, hint: 'e.g. Ph.D.' }
+      - { name: field, label: Field, widget: string }
+      - { name: institution, label: Institution, widget: string }
+      - { name: institutionUrl, label: Institution website, widget: string, required: false }
+      - { name: location, label: Location, widget: string }
+      - { name: start, label: Start, widget: datetime, type: date, format: YYYY-MM-DD }
+      - { name: end, label: End (leave empty if in progress), widget: datetime, type: date, format: YYYY-MM-DD, required: false }
+      - name: status
+        label: Status
+        widget: select
+        options:
+          - { label: Completed, value: completed }
+          - { label: In progress, value: in-progress }
+      - { name: expected, label: Expected completion, widget: string, required: false, hint: 'e.g. December 2026' }
+      - { name: thesis, label: Thesis title, widget: string, required: false }
+      - { name: note, label: Note, widget: string, required: false }
+
+  - name: experience
+    label: Experience
+    label_singular: Position
+    icon: work
+    folder: src/content/experience
+    extension: md
+    format: frontmatter
+    create: true
+    slug: '{{role}}-{{organization}}'
+    identifier_field: role
+    summary: '{{role}} · {{organization}}'
+    fields:
+      - { name: role, label: Role, widget: string }
+      - { name: organization, label: Organisation, widget: string }
+      - { name: location, label: Location, widget: string }
+      - name: type
+        label: Type
+        widget: select
+        options:
+          - { label: Research, value: research }
+          - { label: Full-time, value: full-time }
+          - { label: Part-time, value: part-time }
+          - { label: Internship, value: internship }
+      - { name: start, label: Start, widget: datetime, type: date, format: YYYY-MM-DD }
+      - { name: end, label: End (leave empty if current), widget: datetime, type: date, format: YYYY-MM-DD, required: false }
+      - name: highlights
+        label: Highlights
+        widget: list
+        required: false
+        field: { name: highlight, label: Highlight, widget: text }
+
+  - name: training
+    label: Workshops & certifications
+    label_singular: Workshop / certification
+    icon: verified
+    folder: src/content/training
+    extension: md
+    format: frontmatter
+    create: true
+    slug: '{{fields.date | date(''YYYY-MM'')}}-{{title}}'
+    identifier_field: title
+    fields:
+      - { name: title, label: Title, widget: string }
+      - name: kind
+        label: Kind
+        widget: select
+        options:
+          - { label: Workshop, value: workshop }
+          - { label: Course, value: course }
+          - { label: Certification, value: certification }
+          - { label: Summer school, value: summer-school }
+      - { name: provider, label: Provider, widget: string }
+      - { name: location, label: Location, widget: string, required: false }
+      - { name: date, label: Date, widget: datetime, type: date, format: YYYY-MM-DD }
+      - name: datePrecision
+        label: Show date as
+        widget: select
+        default: day
+        required: false
+        options:
+          - { label: Day, value: day }
+          - { label: Month, value: month }
+          - { label: Year, value: year }
+      - name: evidence
+        label: Evidence (certificate)
+        widget: list
+        required: false
+        fields:
+          - { name: label, label: Label, widget: string }
+          - { name: url, label: Web link, widget: string, required: false }
+          - { name: file, label: File (PDF / image), widget: file, required: false }
+      - { name: draft, label: Hide from site (draft), widget: boolean, default: false, required: false }
+
+  - name: skills
+    label: Skills
+    icon: science
+    files:
+      - name: skills
+        label: Skill groups
+        file: src/content/skills/skills.yaml
+        fields:
+          - name: groups
+            label: Skill groups
+            label_singular: Skill group
+            widget: list
+            root: true
+            summary: '{{name}}'
+            fields:
+              - { name: id, label: 'ID (short, no spaces)', widget: string, hint: 'e.g. lab' }
+              - { name: name, label: Group name, widget: string }
+              - { name: order, label: Order on page, widget: number, value_type: int }
+              - name: items
+                label: Skills
+                widget: list
+                field: { name: item, label: Skill, widget: string }
+
+  # ───────────────────────── Beyond the Lab ─────────────────────────
+  - name: beyond
+    label: Beyond the Lab
+    label_singular: Activity
+    description: Outreach, volunteering and hobbies.
+    icon: volunteer_activism
+    folder: src/content/beyond
+    extension: md
+    format: frontmatter
+    create: true
+    slug: '{{title}}'
+    identifier_field: title
+    media_folder: /src/assets/images/beyond
+    public_folder: /src/assets/images/beyond
+    fields:
+      - { name: title, label: Title, widget: string }
+      - name: kind
+        label: Kind
+        widget: select
+        options:
+          - { label: Outreach, value: outreach }
+          - { label: Volunteering, value: volunteering }
+          - { label: Hobby, value: hobby }
+          - { label: Mentoring, value: mentoring }
+          - { label: Other, value: other }
+      - { name: date, label: Date, widget: datetime, type: date, format: YYYY-MM-DD, required: false }
+      - { name: photo, label: Photo, widget: image, required: false, hint: Make sure everyone pictured is happy to appear online. }
+      - { name: photoAlt, label: Photo description (for screen readers), widget: string, required: false }
+      - name: link
+        label: Link
+        widget: object
+        required: false
+        fields:
+          - { name: label, label: Label, widget: string }
+          - { name: url, label: URL, widget: string }
+      - { name: body, label: Description, widget: richtext }
+      - { name: draft, label: Hide from site (draft), widget: boolean, default: false, required: false }

@@ -26,9 +26,10 @@ affiliation:
   department: Institute of Science and Technology for Advanced Studies and Research (ISTAR)
   url: https://cvmu.edu.in
   ror: https://ror.org/04k69sk69
-# TODO: add a professional headshot at src/assets/images/bhumi-headshot.jpg
-#       (at least 800×800 px) and uncomment the two lines below.
-# photo: ../../assets/images/bhumi-headshot.jpg
+# TODO: add a professional headshot (at least 800×800 px). Easiest: upload it in
+#       the /admin editor (Profile → Headshot). Or save it as
+#       src/assets/images/bhumi-headshot.jpg and uncomment the two lines below.
+# photo: /src/assets/images/bhumi-headshot.jpg
 # photoAlt: Portrait of Bhumi Kabariya
 # TODO: add a CV PDF *without phone number or home address* at
 #       public/cv/Bhumi-Kabariya-CV.pdf, then uncomment the line below.

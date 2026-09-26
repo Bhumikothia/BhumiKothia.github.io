@@ -2,7 +2,54 @@
 
 Everything on the site comes from small text files in **`src/content/`**. To add a publication, talk or award, you **copy an existing file, change the details, and save**. You don't need to touch any code.
 
-You can edit files directly on GitHub (open the file, click the ✏️ pencil icon, then **Commit changes**). The site rebuilds and goes live about two minutes later.
+**The easiest way is the website editor at `/admin/`**, described below. Editing the files directly on GitHub also works: open a file, click the ✏️ pencil icon, then **Commit changes**. Either way, the site rebuilds and goes live about two minutes later.
+
+---
+
+## The website editor (`/admin/`)
+
+The site has a built-in editor with forms, a text editor and photo uploads. Every **Save** is recorded on GitHub under Bhumi's account.
+
+### Option A: edit online (from any computer)
+
+1. Go to **https://bhumikothia.github.io/admin/**
+2. Click **Sign In Using Access Token**. The first time, the dialog has a link that opens GitHub with the right permissions already selected:
+   - Sign in to GitHub as **BhumiKothia**.
+   - Give the token a name like "Website editor" and an expiry date (90 days is sensible).
+   - Click **Generate token**, copy it, and paste it into the dialog.
+
+   The browser remembers the token, so this is needed only once per browser. **Treat the token like a password**: don't share it or save it in a document.
+3. Choose a section on the left (Profile & bio, Publications, Talks and so on), edit, then click **Save**.
+4. About two minutes later, the change is live. Progress shows under the repository's **Actions** tab.
+
+### Option B: edit the files on this computer, then push
+
+Use this for bigger changes you want to check before they go online.
+
+1. In the project folder, run `npm run dev`.
+2. In **Chrome or Edge**, open **http://localhost:4321/admin/index.html**.
+3. Click **Work with Local Repository** and select the project folder (`D:\Project\Bhumi`).
+4. Edit and **Save**. This changes the files on the computer only.
+5. Preview the result at http://localhost:4321/.
+6. When you're happy, publish:
+   ```bash
+   git add .
+   git commit -m "Update website content"
+   git push
+   ```
+
+### Good to know
+
+- **The editor uses the same checks as the site.** Required fields are marked, and something like a missing date stops the save instead of breaking the site.
+- **Photos:**
+  - **Headshot:** Profile & bio → Headshot.
+  - **Beyond the Lab photos:** upload them on each activity.
+  - **CV:** Profile & bio → CV (use the version *without* her phone number).
+  - **Certificates and evidence PDFs:** the Evidence fields on talks and recognition entries.
+- **Hide something without deleting it:** tick **Hide from site (draft)**.
+- **Notes to editors are removed when saving.** Saving an entry in the editor removes any `# TODO` notes inside that file. [TODO.md](TODO.md) keeps the full list, so nothing is lost.
+- **Research page:** describe **published** work only.
+
 
 ---
 
