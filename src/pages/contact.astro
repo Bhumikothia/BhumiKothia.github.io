@@ -1,0 +1,46 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+import Icon from '../components/Icon.astro';
+import ObfuscatedEmail from '../components/ObfuscatedEmail.astro';
+import ProfileLinks from '../components/ProfileLinks.astro';
+import Todo from '../components/Todo.astro';
+import { getProfile } from '../lib/data';
+
+const { data: profile } = await getProfile();
+// Set CONTACT_EMAIL in .env (locally) or as a GitHub repository variable — see DEPLOY.md.
+const email: string | undefined = import.meta.env.CONTACT_EMAIL;
+---
+
+<BaseLayout title="Contact" description={`Contact ${profile.name} (${profile.publishedAs}), Ph.D. researcher in environmental science, about research collaborations and roles.`}>
+  <PageHeader
+    eyebrow="Contact"
+    title="Get in touch"
+    lead="For research collaborations, speaking invitations or opportunities in environmental microbiology and water treatment, email is the best way to reach me."
+  />
+
+  <div class="container-page grid gap-10 py-14 md:grid-cols-2">
+    <div class="card p-8">
+      <h2 class="font-sans text-sm font-semibold tracking-wide text-muted uppercase">Email</h2>
+      <div class="mt-4">
+        {email ? (
+          <ObfuscatedEmail email={email} />
+        ) : (
+          <>
+            <p class="text-muted">Please reach out via LinkedIn.</p>
+            <Todo text="Set CONTACT_EMAIL in .env / GitHub repository variables (DEPLOY.md step 4)." />
+          </>
+        )}
+      </div>
+      {profile.availability && <p class="mt-6 text-sm leading-relaxed text-muted">{profile.availability}</p>}
+      <p class="mt-6 flex items-center gap-1.5 text-sm text-muted">
+        <Icon name="pin" class="size-4" /> {profile.location.display}
+      </p>
+    </div>
+
+    <div class="card p-8">
+      <h2 class="font-sans text-sm font-semibold tracking-wide text-muted uppercase">Research profiles</h2>
+      <ProfileLinks profile={profile} class="mt-4" />
+    </div>
+  </div>
+</BaseLayout>

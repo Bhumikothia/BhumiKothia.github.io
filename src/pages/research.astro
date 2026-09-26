@@ -1,0 +1,41 @@
+---
+import { getEntry, render } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Figure from '../components/Figure.astro';
+import PageHeader from '../components/PageHeader.astro';
+import type { PhotoKey } from '../lib/images';
+
+const page = await getEntry('pages', 'research');
+if (!page) throw new Error('Missing src/content/pages/research.md');
+const { Content } = await render(page);
+
+const figures: { photo: PhotoKey; label: string }[] = [
+  { photo: 'colonies', label: 'Fig. 1' },
+  { photo: 'gramStain', label: 'Fig. 2' },
+  { photo: 'floc', label: 'Fig. 3' },
+];
+---
+
+<BaseLayout title="Research: Bacterial Bioflocculants for Wastewater Treatment" description={page.data.description}>
+  <PageHeader
+    eyebrow="Research · Environmental microbiology"
+    title="Natural flocculants from bacteria, for cleaner industrial wastewater"
+    lead="A plain-language overview first, then the technical detail."
+    photo="clarifiers"
+  />
+
+  <section class="border-b border-line bg-surface py-12" aria-label="Illustrative figures">
+    <div class="container-page grid gap-8 sm:grid-cols-3">
+      {figures.map((f) => (
+        <Figure photo={f.photo} label={f.label} sizes="(min-width: 640px) 33vw, 100vw" />
+      ))}
+    </div>
+  </section>
+
+  <div class="container-text py-14">
+    <div class="prose-site leading-relaxed">
+      <Content />
+    </div>
+    <Figure photo="aeration" label="Fig. 4" aspect="aspect-[16/9]" sizes="(min-width: 768px) 48rem, 100vw" class="mt-14" />
+  </div>
+</BaseLayout>

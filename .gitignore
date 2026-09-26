@@ -1,0 +1,42 @@
+# build output
+dist/
+.astro/
+
+# dependencies
+node_modules/
+
+# environment
+.env
+.env.*
+!.env.example
+
+# PRIVATE source material (CV with phone number, LinkedIn screenshots).
+# Never commit this folder.
+Misc Documents/
+
+# AI-assistant / design-skill folders (local tooling, not part of the website)
+.agents/
+.augment/
+.claude/
+.codebuddy/
+.codewhale/
+.continue/
+.cursor/
+.factory/
+.gemini/
+.kilocode/
+.kiro/
+.opencode/
+.qoder/
+.roo/
+.trae/
+.warp/
+.windsurf/
+.github/prompts/
+design-system/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json

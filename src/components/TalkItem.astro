@@ -1,0 +1,64 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import Icon from './Icon.astro';
+import Todo from './Todo.astro';
+import { formatRange, isoDate, href } from '../lib/format';
+import { roleLabel } from '../lib/jsonld';
+
+interface Props {
+  entry: CollectionEntry<'talks'>;
+}
+const { entry } = Astro.props;
+const t = entry.data;
+const place = [t.location.venue, t.location.city, t.location.region, t.location.country].filter(Boolean).join(', ');
+const end = t.endDate ?? t.startDate;
+const modeLabel = { 'in-person': 'In person', virtual: 'Virtual', hybrid: 'Hybrid' } as const;
+---
+
+<article id={entry.id} class="talk scroll-mt-24 py-6" data-end={isoDate(end)}>
+  <div class="grid gap-4 sm:grid-cols-[9.5rem_1fr]">
+    <p class="flex items-start gap-1.5 text-sm text-muted sm:pt-0.5">
+      <Icon name="calendar" class="mt-0.5 size-4 shrink-0" />
+      <time datetime={isoDate(t.startDate)}>{formatRange(t.startDate, t.endDate)}</time>
+    </p>
+    <div>
+      <div class="mb-2 flex flex-wrap gap-2">
+        <span class:list={['badge', (t.role === 'oral' || t.role === 'keynote' || t.role === 'invited') && 'badge-accent']}>
+          {roleLabel(t.role)}
+        </span>
+        {t.mode && <span class="badge">{modeLabel[t.mode]}</span>}
+      </div>
+      <h3 class="font-sans text-base leading-snug font-semibold sm:text-lg">{t.title}</h3>
+      <p class="mt-1.5 text-sm text-ink">
+        {t.event}{t.eventShort && !t.event.includes(t.eventShort) && <span class="text-muted"> ({t.eventShort})</span>}
+      </p>
+      {t.organizer && <p class="mt-0.5 text-sm text-muted">{t.organizer}</p>}
+      {place && (
+        <p class="mt-1 flex items-center gap-1.5 text-sm text-muted">
+          <Icon name="pin" class="size-4 shrink-0" />
+          {place}
+        </p>
+      )}
+      {(t.links.length > 0 || t.evidence.length > 0) && (
+        <ul class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+          {t.links.map((l) => (
+            <li>
+              <a class="link inline-flex items-center gap-1" href={l.url} rel="noopener" target="_blank">
+                {l.label} <Icon name="external" class="size-3.5" />
+              </a>
+            </li>
+          ))}
+          {t.evidence.map((e) => (
+            <li>
+              <a class="link inline-flex items-center gap-1" href={e.file ? href(e.file) : e.url} rel="noopener" target="_blank">
+                {e.label} <Icon name="external" class="size-3.5" />
+              </a>
+            </li>
+          ))}
+        </ul>
+      )}
+      {!t.mode && <Todo text="Add mode (in-person / virtual)." />}
+      {t.links.length === 0 && <Todo text="Add program or abstract link, and certificate." />}
+    </div>
+  </div>
+</article>

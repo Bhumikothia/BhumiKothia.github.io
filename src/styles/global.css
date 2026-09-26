@@ -1,0 +1,199 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/typography';
+
+/* Fonts (self-hosted). Pairing from the ui-ux-pro-max "Academic/Research" profile,
+   plus a monospace for lab-style labels (DOIs, accessions, figure numbers). */
+@import '@fontsource-variable/crimson-pro/wght.css';
+@import '@fontsource/atkinson-hyperlegible/latin-400.css';
+@import '@fontsource/atkinson-hyperlegible/latin-400-italic.css';
+@import '@fontsource/atkinson-hyperlegible/latin-700.css';
+@import '@fontsource-variable/jetbrains-mono/wght.css';
+
+/* Dark mode is controlled by a `dark` class on <html> (set before paint by the theme script). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+  Colour tokens: "Biotech / Life Sciences" direction (DNA blue + life green),
+  with crystal-violet (Gram stain) as a rare highlight.
+  Every text/background pair below is checked to WCAG AA (≥ 4.5:1) in both themes.
+*/
+:root {
+  --bg: #f4f8f9;
+  --surface: #ffffff;
+  --surface-2: #e8f1f3;
+  --text: #0b2530;
+  --muted: #48626b;
+  --border: #d3e2e6;
+  --accent: #0369a1;
+  --accent-strong: #075985;
+  --accent-soft: #e0f0fa;
+  --life: #047857;
+  --life-soft: #dcf3ea;
+  --stain: #6d28d9;
+  --stain-soft: #efe9fc;
+  --focus: #c2410c;
+  color-scheme: light;
+}
+
+.dark {
+  --bg: #06161c;
+  --surface: #0b2029;
+  --surface-2: #102a34;
+  --text: #e3eff2;
+  --muted: #9db4bb;
+  --border: #1d3a45;
+  --accent: #38bdf8;
+  --accent-strong: #7dd3fc;
+  --accent-soft: #0c3346;
+  --life: #34d399;
+  --life-soft: #0b3328;
+  --stain: #c4b5fd;
+  --stain-soft: #241a45;
+  --focus: #fb923c;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--text);
+  --color-muted: var(--muted);
+  --color-line: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-soft: var(--accent-soft);
+  --color-life: var(--life);
+  --color-life-soft: var(--life-soft);
+  --color-stain: var(--stain);
+  --color-stain-soft: var(--stain-soft);
+
+  --font-sans: 'Atkinson Hyperlegible', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-serif: 'Crimson Pro Variable', ui-serif, Georgia, 'Times New Roman', serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, 'Cascadia Code', Consolas, monospace;
+}
+
+@layer base {
+  html {
+    background: var(--bg);
+    color: var(--text);
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-bg text-ink font-sans antialiased;
+    font-size: 1.0625rem;
+    line-height: 1.65;
+  }
+  h1,
+  h2,
+  h3 {
+    @apply font-serif text-ink;
+    letter-spacing: -0.005em;
+    text-wrap: balance;
+  }
+  a,
+  button,
+  summary {
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  a {
+    text-underline-offset: 0.18em;
+    text-decoration-thickness: 1px;
+  }
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 3px;
+    border-radius: 3px;
+  }
+  ::selection {
+    background: var(--accent-soft);
+    color: var(--text);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  .container-page {
+    @apply mx-auto w-full max-w-6xl px-5 sm:px-8;
+  }
+  .container-text {
+    @apply mx-auto w-full max-w-3xl px-5 sm:px-8;
+  }
+  /* Lab-label eyebrow, e.g. "SPECIMEN 01 · RESEARCH" */
+  .eyebrow {
+    @apply font-mono text-xs font-medium tracking-[0.12em] text-life uppercase;
+  }
+  .link {
+    @apply text-accent underline decoration-accent/40 transition-colors hover:decoration-accent;
+  }
+  .badge {
+    @apply inline-flex items-center rounded-md border border-line bg-surface-2 px-2 py-0.5 font-mono text-[0.75rem] font-medium tracking-wide text-muted uppercase;
+  }
+  .badge-accent {
+    @apply border-transparent bg-accent-soft text-accent-strong;
+  }
+  .badge-life {
+    @apply border-transparent bg-life-soft text-life;
+  }
+  .badge-stain {
+    @apply border-transparent bg-stain-soft text-stain;
+  }
+  .btn {
+    @apply inline-flex min-h-11 items-center gap-2 rounded-full border border-line bg-surface px-4 py-2 text-sm font-bold text-ink transition-colors duration-200 hover:border-accent hover:text-accent;
+  }
+  .btn-primary {
+    @apply border-transparent bg-accent text-white hover:bg-accent-strong hover:text-white;
+  }
+  .dark .btn-primary {
+    @apply text-bg hover:text-bg;
+  }
+  .card {
+    @apply rounded-2xl border border-line bg-surface;
+  }
+  .mono {
+    @apply font-mono text-[0.8125rem];
+  }
+  /* Subtle agar-plate dot grid used behind headers */
+  .bg-plate {
+    background-image: radial-gradient(color-mix(in oklab, var(--accent) 22%, transparent) 1px, transparent 1.2px);
+    background-size: 22px 22px;
+  }
+  .prose-site {
+    @apply prose max-w-none dark:prose-invert;
+    font-size: 1.0625rem;
+    --tw-prose-body: var(--text);
+    --tw-prose-headings: var(--text);
+    --tw-prose-links: var(--accent);
+    --tw-prose-bold: var(--text);
+    --tw-prose-counters: var(--life);
+    --tw-prose-bullets: var(--life);
+    --tw-prose-quotes: var(--text);
+    --tw-prose-hr: var(--border);
+    --tw-prose-invert-body: var(--text);
+    --tw-prose-invert-headings: var(--text);
+    --tw-prose-invert-links: var(--accent);
+    --tw-prose-invert-bold: var(--text);
+    --tw-prose-invert-counters: var(--life);
+    --tw-prose-invert-bullets: var(--life);
+    --tw-prose-invert-hr: var(--border);
+  }
+  .prose-site :where(h2) {
+    @apply mt-14 text-3xl font-semibold;
+  }
+  .prose-site :where(a) {
+    @apply decoration-accent/40 hover:decoration-accent;
+    font-weight: 700;
+  }
+  .prose-site :where(em) {
+    font-style: italic;
+  }
+}

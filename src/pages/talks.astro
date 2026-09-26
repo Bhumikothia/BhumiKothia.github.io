@@ -1,0 +1,59 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { siteRoot } from '../lib/format';
+import PageHeader from '../components/PageHeader.astro';
+import TalkItem from '../components/TalkItem.astro';
+import { getProfile, getTalks, splitTalks } from '../lib/data';
+import { event } from '../lib/jsonld';
+
+const { data: profile } = await getProfile();
+const talks = await getTalks();
+const { upcoming, past } = splitTalks(talks);
+const root = siteRoot(Astro.site);
+const jsonLd = talks.map((t) => event(t, root));
+---
+
+<BaseLayout
+  title="Conferences & Talks"
+  description={`Conference presentations by ${profile.name} (${profile.publishedAs}) on bioflocculant-producing bacteria and wastewater treatment: oral and poster presentations at national and international conferences.`}
+  jsonLd={jsonLd}
+>
+  <PageHeader
+    eyebrow="Conferences · Talks · Posters"
+    title="Conferences & Talks"
+    lead="Oral and poster presentations at national and international conferences."
+  />
+
+  <div class="container-page py-10">
+    <section id="upcoming" aria-labelledby="upcoming-h" class="scroll-mt-24 border-b border-line py-10">
+      <h2 id="upcoming-h" class="text-2xl font-semibold">Upcoming</h2>
+      <div class="divide-y divide-line" data-upcoming-list>
+        {upcoming.map((t) => <TalkItem entry={t} />)}
+      </div>
+      <p class="mt-4 text-muted" data-upcoming-empty hidden={upcoming.length > 0}>
+        No upcoming talks scheduled right now.
+      </p>
+    </section>
+
+    <section id="past" aria-labelledby="past-h" class="scroll-mt-24 py-10">
+      <h2 id="past-h" class="text-2xl font-semibold">Past</h2>
+      <div class="divide-y divide-line" data-past-list>
+        {past.map((t) => <TalkItem entry={t} />)}
+      </div>
+    </section>
+  </div>
+</BaseLayout>
+
+<script>
+  // The site is rebuilt weekly, but in case a talk ends between rebuilds,
+  // move it from "Upcoming" to the top of "Past" in the visitor's browser.
+  const upcoming = document.querySelector('[data-upcoming-list]');
+  const past = document.querySelector('[data-past-list]');
+  const empty = document.querySelector<HTMLElement>('[data-upcoming-empty]');
+  if (upcoming && past) {
+    const today = new Date().toISOString().slice(0, 10);
+    const ended = [...upcoming.querySelectorAll<HTMLElement>('.talk')].filter((el) => (el.dataset.end ?? '') < today);
+    ended.forEach((el) => past.prepend(el)); // soonest-first, so the latest ends up on top
+    if (empty) empty.hidden = upcoming.querySelectorAll('.talk').length > 0;
+  }
+</script>

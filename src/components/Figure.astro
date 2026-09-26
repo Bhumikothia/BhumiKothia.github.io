@@ -1,0 +1,59 @@
+---
+/**
+ * A captioned, credited science photo. Credits are required by the image licences.
+ */
+import { Image } from 'astro:assets';
+import { photos, type PhotoKey } from '../lib/images';
+
+interface Props {
+  photo: PhotoKey;
+  /** Optional figure label, e.g. "Fig. 1" */
+  label?: string;
+  /** Tailwind aspect class for the image box */
+  aspect?: string;
+  widths?: number[];
+  sizes?: string;
+  eager?: boolean;
+  showCaption?: boolean;
+  class?: string;
+}
+const {
+  photo,
+  label,
+  aspect = 'aspect-[4/3]',
+  widths = [360, 540, 768, 1080],
+  sizes = '(min-width: 1024px) 33vw, 100vw',
+  eager = false,
+  showCaption = true,
+  class: cls = '',
+} = Astro.props;
+const p = photos[photo];
+---
+
+<figure class:list={['group', cls]}>
+  <div class:list={['relative overflow-hidden rounded-xl border border-line bg-surface-2', aspect]}>
+    <Image
+      src={p.src}
+      alt={p.alt}
+      widths={widths}
+      sizes={sizes}
+      quality={62}
+      loading={eager ? 'eager' : 'lazy'}
+      fetchpriority={eager ? 'high' : undefined}
+      class="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02] motion-reduce:transform-none"
+    />
+    {label && (
+      <span class="absolute top-3 left-3 rounded-md bg-black/65 px-2 py-0.5 font-mono text-[0.75rem] tracking-wide text-white uppercase">
+        {label}
+      </span>
+    )}
+  </div>
+  <figcaption class="mt-2.5 text-sm leading-snug">
+    {showCaption && <span class="text-ink">{p.caption} </span>}
+    <span class="mt-1 block font-mono text-[0.75rem] text-muted">
+      Illustrative · Photo:{' '}
+      <a class="underline decoration-dotted hover:text-accent" href={p.source} rel="noopener" target="_blank">{p.author}</a>,{' '}
+      <a class="underline decoration-dotted hover:text-accent" href={p.licenseUrl} rel="noopener license" target="_blank">{p.license}</a>
+    </span>
+  </figcaption>
+</figure>

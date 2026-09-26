@@ -1,0 +1,130 @@
+---
+import '../styles/global.css';
+import { getEntry } from 'astro:content';
+import Header from '../components/Header.astro';
+import Icon from '../components/Icon.astro';
+import { href, siteRoot } from '../lib/format';
+import { person } from '../lib/jsonld';
+import { NAV } from '../lib/nav';
+import serifFont from '@fontsource-variable/crimson-pro/files/crimson-pro-latin-wght-normal.woff2?url';
+import bodyFont from '@fontsource/atkinson-hyperlegible/files/atkinson-hyperlegible-latin-400-normal.woff2?url';
+
+interface Props {
+  /** Short page name, e.g. "Publications & Datasets". Omit on the home page. */
+  title?: string;
+  description: string;
+  /** Extra JSON-LD objects for this page. */
+  jsonLd?: object[];
+  ogType?: 'website' | 'profile';
+}
+
+const { title, description, jsonLd = [], ogType = 'website' } = Astro.props;
+const profileEntry = await getEntry('profile', 'profile');
+if (!profileEntry) throw new Error('Missing src/content/profile/profile.md');
+const profile = profileEntry.data;
+
+const root = siteRoot(Astro.site);
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const nameWithAlias = profile.publishedAs ? `${profile.name} (${profile.publishedAs})` : profile.name;
+const fullTitle = title
+  ? `${title} | ${nameWithAlias}`
+  : `${nameWithAlias} | Environmental Microbiology & Wastewater Treatment Researcher`;
+const ogImage = new URL('og-default.png', root).href;
+const cfToken = import.meta.env.PUBLIC_CF_ANALYTICS_TOKEN;
+
+const structured = [person(profile, root), ...jsonLd];
+const year = new Date().getFullYear();
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <meta name="author" content={profile.name} />
+    <link rel="canonical" href={canonical} />
+    <link rel="preload" href={serifFont} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={bodyFont} as="font" type="font/woff2" crossorigin />
+    <link rel="icon" href={href('/favicon.svg')} type="image/svg+xml" />
+    <link rel="sitemap" href={href('/sitemap-index.xml')} />
+    <meta name="theme-color" content="#fbfaf7" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0e1413" media="(prefers-color-scheme: dark)" />
+
+    <!-- Open Graph / social cards -->
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content={nameWithAlias} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={`${profile.name}, ${profile.headline}`} />
+    <meta property="og:locale" content="en_US" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    {structured.map((obj) => <script type="application/ld+json" set:html={JSON.stringify(obj)} />)}
+
+    <!-- Apply the saved or system theme before first paint (prevents a flash). -->
+    <script is:inline>
+      (function () {
+        var t = null;
+        try { t = localStorage.getItem('theme'); } catch (e) {}
+        var dark = t ? t === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (dark) document.documentElement.classList.add('dark');
+      })();
+    </script>
+
+    {cfToken && (
+      <script
+        is:inline
+        defer
+        src="https://static.cloudflareinsights.com/beacon.min.js"
+        data-cf-beacon={JSON.stringify({ token: cfToken })}
+      />
+    )}
+  </head>
+  <body class="flex min-h-screen flex-col">
+    <a
+      href="#main"
+      class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-full focus:bg-accent focus:px-4 focus:py-2 focus:text-white"
+    >
+      Skip to content
+    </a>
+    <Header name={profile.name} />
+
+    <main id="main" class="flex-1">
+      <slot />
+    </main>
+
+    <footer class="mt-24 border-t border-line">
+      <div class="container-page grid gap-8 py-10 text-sm text-muted sm:grid-cols-[1fr_auto]">
+        <div>
+          <p class="font-serif text-base font-semibold text-ink">{profile.name}</p>
+          <p>{profile.publishedAs && <>Published as {profile.publishedAs} · </>}{profile.headline}</p>
+          <p class="mt-1">{profile.affiliation.department ? 'ISTAR, ' : ''}{profile.affiliation.name}</p>
+          <p class="mt-4">© {year} {profile.name}. Illustrative science photos: <a class="underline hover:text-accent" href={href('/credits/')}>image credits</a>.</p>
+        </div>
+        <nav aria-label="Footer">
+          <ul class="grid grid-cols-2 gap-x-8 gap-y-1.5">
+            {NAV.map((item) => (
+              <li><a class="hover:text-accent" href={href(item.path)}>{item.label}</a></li>
+            ))}
+            {profile.links.orcid && (
+              <li>
+                <a class="inline-flex items-center gap-1 hover:text-accent" href={profile.links.orcid} rel="me noopener">
+                  ORCID <Icon name="external" class="size-3" />
+                </a>
+              </li>
+            )}
+          </ul>
+        </nav>
+      </div>
+    </footer>
+  </body>
+</html>

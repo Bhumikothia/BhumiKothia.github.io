@@ -1,0 +1,87 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { siteRoot } from '../lib/format';
+import PageHeader from '../components/PageHeader.astro';
+import PublicationItem from '../components/PublicationItem.astro';
+import { getProfile, getPublications, selfNames } from '../lib/data';
+import { publication } from '../lib/jsonld';
+
+const { data: profile } = await getProfile();
+const names = selfNames(profile);
+const pubs = await getPublications();
+const root = siteRoot(Astro.site);
+
+const sections = [
+  { id: 'articles', title: 'Journal articles', types: ['journal-article', 'conference-paper', 'preprint'] },
+  { id: 'books', title: 'Books & chapters', types: ['book', 'book-chapter'] },
+  {
+    id: 'datasets',
+    title: 'Datasets',
+    types: ['dataset'],
+    intro: 'Openly licensed research data, each with its own DOI.',
+  },
+  {
+    id: 'data-deposits',
+    title: 'Sequence deposits (NCBI GenBank)',
+    types: ['sequence'],
+    intro: '16S rRNA gene sequences of bioflocculant-producing isolates, deposited in NCBI GenBank.',
+  },
+  { id: 'other', title: 'Other writing', types: ['magazine'] },
+]
+  .map((s) => ({ ...s, items: pubs.filter((p) => s.types.includes(p.data.type)) }))
+  .filter((s) => s.items.length > 0);
+
+/** Group a section's items by year (items are already newest first). */
+function byYear(items: typeof pubs) {
+  const groups = new Map<number, typeof pubs>();
+  for (const p of items) {
+    const y = p.data.date.getUTCFullYear();
+    groups.set(y, [...(groups.get(y) ?? []), p]);
+  }
+  return [...groups.entries()];
+}
+
+const jsonLd = pubs.map((p) => publication(p, names, root));
+---
+
+<BaseLayout
+  title="Publications & Datasets"
+  description={`Publications, datasets and GenBank sequences by ${profile.name} (published as ${profile.publishedAs}) on bioflocculant-producing bacteria and wastewater treatment, with DOIs and citations.`}
+  jsonLd={jsonLd}
+>
+  <PageHeader
+    eyebrow="Publications · Datasets · Sequences"
+    title="Publications & Datasets"
+    photo="licheniformis"
+    lead={`Published as ${profile.publishedAs}. Every item links to its permanent record (DOI or GenBank accession). Use “Cite” to copy a reference in APA or BibTeX.`}
+  >
+    <nav aria-label="Publication types" class="mt-8">
+      <ul class="flex flex-wrap gap-2">
+        {sections.map((s) => (
+          <li>
+            <a class="btn py-1.5 text-xs" href={`#${s.id}`}>
+              {s.title} <span class="text-muted">{s.items.length}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  </PageHeader>
+
+  <div class="container-page py-10">
+    {sections.map((s) => (
+      <section id={s.id} class="scroll-mt-24 border-b border-line py-10 last:border-0" aria-labelledby={`${s.id}-h`}>
+        <h2 id={`${s.id}-h`} class="text-2xl font-semibold">{s.title}</h2>
+        {s.intro && <p class="mt-2 text-muted">{s.intro}</p>}
+        {byYear(s.items).map(([year, items]) => (
+          <div class="mt-6 grid grid-cols-[minmax(0,1fr)] gap-x-8 md:grid-cols-[5rem_minmax(0,1fr)]">
+            <h3 class="pt-6 font-serif text-lg font-semibold text-accent md:sticky md:top-20 md:self-start">{year}</h3>
+            <div class="divide-y divide-line">
+              {items.map((entry) => <PublicationItem entry={entry} selfNames={names} level={4} />)}
+            </div>
+          </div>
+        ))}
+      </section>
+    ))}
+  </div>
+</BaseLayout>

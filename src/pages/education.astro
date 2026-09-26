@@ -1,0 +1,100 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+import Todo from '../components/Todo.astro';
+import { getProfile } from '../lib/data';
+import { formatDate, formatSpan, href } from '../lib/format';
+
+const { data: profile } = await getProfile();
+const education = (await getCollection('education')).sort((a, b) => b.data.start.getTime() - a.data.start.getTime());
+const skills = (await getCollection('skills')).sort((a, b) => a.data.order - b.data.order);
+const training = (await getCollection('training', ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.date.getTime() - a.data.date.getTime(),
+);
+const kindLabel = { workshop: 'Workshop', course: 'Course', certification: 'Certification', 'summer-school': 'Summer school' } as const;
+---
+
+<BaseLayout
+  title="Education & Skills"
+  description={`Education and laboratory skills of ${profile.name}: Ph.D. in Environmental Science (CVM University), M.Sc. Environmental Science & Technology, B.Sc. Microbiology; microbiology, molecular identification and bioinformatics.`}
+>
+  <PageHeader
+    eyebrow="Education · Lab techniques"
+    title="Education & Skills"
+    lead="Trained in microbiology, environmental science and clinical laboratory work."
+    photo="colonies"
+  />
+
+  <div class="container-page py-10">
+    <section aria-labelledby="edu-h" class="py-10">
+      <h2 id="edu-h" class="text-2xl font-semibold">Education</h2>
+      <ol class="mt-4 divide-y divide-line">
+        {education.map(({ data: e }) => (
+          <li class="grid gap-2 py-6 sm:grid-cols-[11rem_1fr]">
+            <p class="text-sm text-muted">
+              {e.status === 'in-progress' ? (
+                <>
+                  {formatSpan(e.start)}
+                  {e.expected && <span class="block">Expected {e.expected}</span>}
+                </>
+              ) : (
+                formatSpan(e.start, e.end)
+              )}
+            </p>
+            <div>
+              <h3 class="font-sans text-lg font-semibold">
+                {e.degree}, {e.field}
+                {e.status === 'in-progress' && <span class="badge badge-accent ml-2 align-middle">In progress</span>}
+              </h3>
+              <p class="text-ink">
+                {e.institutionUrl ? <a class="hover:text-accent" href={e.institutionUrl} rel="noopener">{e.institution}</a> : e.institution}
+              </p>
+              <p class="text-sm text-muted">{e.location}</p>
+              {e.thesis && <p class="mt-2 text-sm">Thesis: <em>“{e.thesis}”</em></p>}
+              {e.note && <p class="mt-1 text-sm text-muted">{e.note}</p>}
+            </div>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <section aria-labelledby="skills-h" class="border-t border-line py-10">
+      <h2 id="skills-h" class="text-2xl font-semibold">Skills &amp; techniques</h2>
+      <div class="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {skills.map(({ data: g }) => (
+          <div class="card p-6">
+            <h3 class="font-sans text-sm font-semibold tracking-wide text-accent uppercase">{g.name}</h3>
+            <ul class="mt-3 space-y-1.5 text-sm">
+              {g.items.map((item) => <li>{item}</li>)}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <section aria-labelledby="training-h" class="border-t border-line py-10">
+      <h2 id="training-h" class="text-2xl font-semibold">Professional development &amp; certifications</h2>
+      <ul class="mt-4 divide-y divide-line">
+        {training.map(({ data: t }) => (
+          <li class="grid gap-2 py-6 sm:grid-cols-[11rem_1fr]">
+            <p class="text-sm text-muted">{formatDate(t.date, t.datePrecision)}</p>
+            <div>
+              <span class="badge mb-2">{kindLabel[t.kind]}</span>
+              <h3 class="font-sans text-base font-semibold">{t.title}</h3>
+              <p class="text-sm text-muted">{t.provider}{t.location && ` · ${t.location}`}</p>
+              {t.evidence.length > 0 && (
+                <ul class="mt-2 flex flex-wrap gap-x-4 text-sm">
+                  {t.evidence.map((ev) => (
+                    <li><a class="link" href={ev.file ? href(ev.file) : ev.url} rel="noopener">{ev.label}</a></li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </li>
+        ))}
+      </ul>
+      <Todo text="Add any formal certifications (e.g. lab safety, GLP, ISO training) if Bhumi holds them." />
+    </section>
+  </div>
+</BaseLayout>

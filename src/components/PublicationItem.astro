@@ -1,0 +1,153 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import Icon from './Icon.astro';
+import { apa, bibtex } from '../lib/citation';
+import { displayName, formatDate } from '../lib/format';
+
+interface Props {
+  entry: CollectionEntry<'publications'>;
+  selfNames: string[];
+  compact?: boolean;
+  /** Heading level for the title (3 by default; 4 when nested under a year heading). */
+  level?: 3 | 4;
+}
+const { entry, selfNames, compact = false, level = 3 } = Astro.props;
+const H = `h${level}` as 'h3' | 'h4';
+const p = entry.data;
+
+const typeLabel: Record<string, string> = {
+  'journal-article': 'Journal article',
+  'conference-paper': 'Conference paper',
+  book: 'Book',
+  'book-chapter': 'Book chapter',
+  dataset: 'Dataset',
+  sequence: 'GenBank sequence',
+  magazine: 'Magazine article',
+  preprint: 'Preprint',
+};
+
+const badgeTone: Record<string, string> = {
+  'journal-article': 'badge-accent',
+  'conference-paper': 'badge-accent',
+  book: 'badge-accent',
+  dataset: 'badge-life',
+  sequence: 'badge-stain',
+};
+
+const isSelf = (a: string) => {
+  const family = a.split(',')[0].trim().toLowerCase();
+  return selfNames.some((n) => n.toLowerCase().includes(family));
+};
+
+let venueLine = p.venue;
+if (p.volume) venueLine += `, Vol. ${p.volume}`;
+if (p.issue) venueLine += `(${p.issue})`;
+if (p.pages) venueLine += `, ${p.pages.includes('–') ? 'pp.' : 'p.'} ${p.pages}`;
+if (p.version) venueLine += ` · ${p.version}`;
+
+const primaryUrl = p.doi ? `https://doi.org/${p.doi}` : p.url;
+const citeId = `cite-${entry.id}`;
+---
+
+<article id={entry.id} class="group min-w-0 scroll-mt-24 py-6">
+  <div class="mb-2 flex flex-wrap items-center gap-2 text-xs">
+    <span class:list={['badge', badgeTone[p.type]]}>{typeLabel[p.type]}</span>
+    {p.peerReviewed && <span class="badge badge-life">Peer-reviewed</span>}
+    {p.license && <span class="badge">{p.license}</span>}
+    <span class="font-mono text-[0.75rem] text-muted uppercase">{formatDate(p.date, p.datePrecision)}</span>
+  </div>
+
+  <H class="font-sans text-base leading-snug font-semibold sm:text-lg">
+    {primaryUrl ? (
+      <a href={primaryUrl} class="text-ink hover:text-accent" rel="noopener" target="_blank">
+        {p.type === 'sequence' ? <em>{p.title.split(' ').slice(0, 2).join(' ')}</em> : null}
+        {p.type === 'sequence' ? ` ${p.title.split(' ').slice(2).join(' ')}` : p.title}
+        <span class="sr-only">(opens in a new tab)</span>
+      </a>
+    ) : (
+      p.title
+    )}
+  </H>
+
+  <p class="mt-1.5 text-sm text-muted">
+    {p.authors.map((a, i) => (
+      <>
+        {i > 0 && ', '}
+        {isSelf(a) ? <strong class="font-semibold text-ink">{displayName(a)}</strong> : displayName(a)}
+      </>
+    ))}
+  </p>
+  <p class="mt-0.5 text-sm text-muted italic">{venueLine}</p>
+
+  {!compact && (
+    <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+      {p.doi && (
+        <a class="link mono inline-flex items-center gap-1" href={`https://doi.org/${p.doi}`} rel="noopener" target="_blank">
+          doi:{p.doi}
+          <Icon name="external" class="size-3.5" />
+        </a>
+      )}
+      {p.accession && (
+        <a class="link mono inline-flex items-center gap-1" href={p.url} rel="noopener" target="_blank">
+          GenBank {p.accession}
+          <Icon name="external" class="size-3.5" />
+        </a>
+      )}
+      {!p.doi && !p.accession && p.url && (
+        <a class="link inline-flex items-center gap-1" href={p.url} rel="noopener" target="_blank">
+          {p.asin ? 'View on Amazon' : 'View'}
+          <Icon name="external" class="size-3.5" />
+        </a>
+      )}
+      {p.isbn && <span class="text-muted">ISBN {p.isbn}</span>}
+
+      <details class="cite w-full sm:w-auto">
+        <summary class="inline-flex cursor-pointer list-none items-center gap-1 font-medium text-muted hover:text-accent [&::-webkit-details-marker]:hidden">
+          <Icon name="copy" class="size-3.5" /> Cite
+        </summary>
+        <div class="card mt-3 max-w-full space-y-3 p-4 text-xs sm:w-[36rem]" id={citeId}>
+          <div>
+            <div class="mb-1 flex items-center justify-between">
+              <span class="font-semibold text-ink">APA</span>
+              <button type="button" class="copy-btn btn px-3 py-1 text-xs" data-target={`${citeId}-apa`}>
+                <Icon name="copy" class="size-3.5" /> <span aria-live="polite">Copy</span>
+              </button>
+            </div>
+            <p id={`${citeId}-apa`} class="rounded-lg bg-surface-2 p-3 leading-relaxed break-words text-ink">{apa(p)}</p>
+          </div>
+          <div>
+            <div class="mb-1 flex items-center justify-between">
+              <span class="font-semibold text-ink">BibTeX</span>
+              <button type="button" class="copy-btn btn px-3 py-1 text-xs" data-target={`${citeId}-bib`}>
+                <Icon name="copy" class="size-3.5" /> <span aria-live="polite">Copy</span>
+              </button>
+            </div>
+            <pre id={`${citeId}-bib`} class="overflow-x-auto rounded-lg bg-surface-2 p-3 leading-relaxed text-ink">{bibtex(p)}</pre>
+          </div>
+        </div>
+      </details>
+    </div>
+  )}
+</article>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('.copy-btn').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const target = document.getElementById(btn.dataset.target ?? '');
+      const label = btn.querySelector('span');
+      if (!target || !label) return;
+      try {
+        await navigator.clipboard.writeText(target.textContent?.trim() ?? '');
+        label.textContent = 'Copied';
+      } catch {
+        const range = document.createRange();
+        range.selectNodeContents(target);
+        const sel = window.getSelection();
+        sel?.removeAllRanges();
+        sel?.addRange(range);
+        label.textContent = 'Press Ctrl+C';
+      }
+      setTimeout(() => (label.textContent = 'Copy'), 2000);
+    });
+  });
+</script>

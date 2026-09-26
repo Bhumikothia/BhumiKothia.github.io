@@ -1,0 +1,138 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+import Icon from '../components/Icon.astro';
+import Todo from '../components/Todo.astro';
+import { getProfile, getPublications, getRecognition, getStats } from '../lib/data';
+import { formatDate, href } from '../lib/format';
+
+const { data: profile } = await getProfile();
+const items = await getRecognition();
+const stats = await getStats();
+const pubs = await getPublications();
+
+const categories = [
+  { id: 'awards', title: 'Awards & honours', cats: ['award'] },
+  { id: 'funding', title: 'Grants & fellowships', cats: ['grant', 'fellowship'] },
+  { id: 'review', title: 'Peer review, judging & editorial work', cats: ['peer-review', 'judging', 'editorial'] },
+  { id: 'invited', title: 'Invited roles', cats: ['invited-role'] },
+  { id: 'memberships', title: 'Professional memberships', cats: ['membership'] },
+  { id: 'media', title: 'Media & public mentions', cats: ['media'] },
+].map((c) => ({ ...c, items: items.filter((i) => c.cats.includes(i.data.category)) }));
+
+const withItems = categories.filter((c) => c.items.length > 0);
+const empty = categories.filter((c) => c.items.length === 0);
+
+// Independent public records that verify the research output listed on this site.
+const records = [
+  {
+    what: `${stats.journalArticles} peer-reviewed journal article`,
+    where: 'Crossref (DOI registry) and the journal website',
+    link: pubs.find((p) => p.data.type === 'journal-article')?.data.doi,
+    linkLabel: 'Resolve DOI',
+  },
+  {
+    what: `${stats.datasets} datasets`,
+    where: 'DataCite (DOI registry) via Mendeley Data',
+    url: 'https://commons.datacite.org/?query=Kothia%2C+Bhumi',
+    linkLabel: 'Search DataCite',
+  },
+  {
+    what: `${stats.sequences} GenBank sequences`,
+    where: 'NCBI Nucleotide database',
+    url: 'https://www.ncbi.nlm.nih.gov/nuccore/?term=Kothia+B.A.%5BAuthor%5D',
+    linkLabel: 'Search NCBI',
+  },
+  {
+    what: 'Works, education, employment and distinctions',
+    where: 'ORCID record (self-asserted and source-linked)',
+    url: profile.links.orcid,
+    linkLabel: 'Open ORCID',
+  },
+];
+---
+
+<BaseLayout
+  title="Recognition & Service"
+  description={`Awards, honours, peer review and professional service of ${profile.name} (${profile.publishedAs}), each with a date and a link to verify it.`}
+>
+  <PageHeader
+    eyebrow="Recognition · Service · Evidence"
+    title="Recognition & Service"
+    lead="Each entry lists its date, the awarding or inviting organisation, and links to independent evidence."
+  />
+
+  <div class="container-page py-10">
+    {withItems.map((c) => (
+      <section id={c.id} aria-labelledby={`${c.id}-h`} class="scroll-mt-24 border-b border-line py-10">
+        <h2 id={`${c.id}-h`} class="text-2xl font-semibold">{c.title}</h2>
+        <ul class="mt-4 space-y-5">
+          {c.items.map(({ id, data: r }) => (
+            <li id={id} class="card scroll-mt-24 p-6">
+              <div class="flex flex-wrap items-start justify-between gap-x-6 gap-y-1">
+                <h3 class="font-sans text-lg font-semibold">{r.title}</h3>
+                <p class="text-sm text-muted">
+                  {formatDate(r.date, r.datePrecision)}
+                  {r.endDate && ` – ${formatDate(r.endDate, r.datePrecision)}`}
+                </p>
+              </div>
+              <p class="text-sm text-ink">
+                {r.issuerUrl ? <a class="hover:text-accent" href={r.issuerUrl} rel="noopener">{r.issuer}</a> : r.issuer}
+              </p>
+              <p class="mt-3 text-sm leading-relaxed text-muted">{r.summary}</p>
+              <div class="mt-4 border-t border-line pt-4">
+                <p class="mb-2 text-xs font-semibold tracking-wide text-muted uppercase">Evidence</p>
+                <ul class="space-y-1.5 text-sm">
+                  {r.evidence.map((ev) => (
+                    <li class="flex flex-wrap items-center gap-x-3">
+                      <a class="link inline-flex items-center gap-1" href={ev.file ? href(ev.file) : ev.url} rel="noopener" target="_blank">
+                        {ev.label} <Icon name="external" class="size-3.5" />
+                      </a>
+                      {ev.archivedUrl && (
+                        <a class="text-xs text-muted underline hover:text-accent" href={ev.archivedUrl} rel="noopener" target="_blank">
+                          archived copy
+                        </a>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
+
+    <section aria-labelledby="records-h" class="py-10">
+      <h2 id="records-h" class="text-2xl font-semibold">Independent public records</h2>
+      <p class="mt-2 max-w-2xl text-muted">
+        Research outputs listed on this site are registered with the independent services below, under the name
+        {profile.publishedAs}.
+      </p>
+      <div class="mt-6 overflow-x-auto">
+        <table class="w-full min-w-[36rem] text-left text-sm">
+          <thead class="border-b border-line text-xs tracking-wide text-muted uppercase">
+            <tr><th scope="col" class="py-2 pr-4 font-semibold">Output</th><th scope="col" class="py-2 pr-4 font-semibold">Registered with</th><th scope="col" class="py-2 font-semibold">Verify</th></tr>
+          </thead>
+          <tbody class="divide-y divide-line">
+            {records.map((r) => (
+              <tr>
+                <td class="py-3 pr-4 font-medium">{r.what}</td>
+                <td class="py-3 pr-4 text-muted">{r.where}</td>
+                <td class="py-3">
+                  <a class="link inline-flex items-center gap-1" href={r.link ? `https://doi.org/${r.link}` : r.url} rel="noopener" target="_blank">
+                    {r.linkLabel} <Icon name="external" class="size-3.5" />
+                  </a>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    {empty.map((c) => (
+      <Todo text={`“${c.title}” has no entries yet — add files in src/content/recognition/ (hidden on the live site until then).`} />
+    ))}
+  </div>
+</BaseLayout>

@@ -1,0 +1,74 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+import Todo from '../components/Todo.astro';
+import { getProfile } from '../lib/data';
+import { formatSpan } from '../lib/format';
+
+const profileEntry = await getProfile();
+const profile = profileEntry.data;
+const { Content: LongBio } = await render(profileEntry);
+
+const experience = (await getCollection('experience')).sort((a, b) => b.data.start.getTime() - a.data.start.getTime());
+const typeLabel = { research: 'Research', 'full-time': 'Full-time', 'part-time': 'Part-time', internship: 'Internship' } as const;
+---
+
+<BaseLayout
+  title="About"
+  description={`About ${profile.name} (${profile.publishedAs}): environmental science Ph.D. researcher working on bacterial bioflocculants and wastewater treatment, with industry EHS and laboratory experience.`}
+  ogType="profile"
+>
+  <PageHeader eyebrow="About" title={`About ${profile.name.split(' ')[0]}`} lead={profile.shortBio} />
+
+  <div class="container-page grid gap-14 py-14 lg:grid-cols-[1fr_18rem]">
+    <div>
+      <section aria-labelledby="bio">
+        <h2 id="bio" class="mb-6 text-2xl font-semibold">Biography</h2>
+        <Todo text="Bhumi to review and personalise the long bio (src/content/profile/profile.md)." />
+        <div class="prose-site text-[1.0625rem] leading-relaxed">
+          <LongBio />
+        </div>
+      </section>
+
+      <section aria-labelledby="experience" class="mt-16">
+        <h2 id="experience" class="mb-2 text-2xl font-semibold">Experience</h2>
+        <ol class="divide-y divide-line">
+          {experience.map(({ data: e }) => (
+            <li class="py-6">
+              <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                <h3 class="font-sans text-lg font-semibold">{e.role}</h3>
+                <p class="text-sm text-muted">{formatSpan(e.start, e.end)}</p>
+              </div>
+              <p class="text-ink">{e.organization} <span class="text-muted">· {e.location} · {typeLabel[e.type]}</span></p>
+              {e.highlights.length > 0 && (
+                <ul class="mt-3 list-disc space-y-1 pl-5 text-sm leading-relaxed text-muted marker:text-accent">
+                  {e.highlights.map((h) => <li>{h}</li>)}
+                </ul>
+              )}
+            </li>
+          ))}
+        </ol>
+      </section>
+    </div>
+
+    <aside class="space-y-8 lg:pt-14">
+      <div class="card p-6">
+        <h2 class="mb-3 font-sans text-sm font-semibold tracking-wide text-muted uppercase">Research interests</h2>
+        <ul class="space-y-2 text-sm">
+          {profile.researchInterests.map((r) => <li class="border-l-2 border-accent/50 pl-3">{r}</li>)}
+        </ul>
+      </div>
+      <div class="card p-6 text-sm">
+        <h2 class="mb-3 font-sans text-sm font-semibold tracking-wide text-muted uppercase">At a glance</h2>
+        <dl class="space-y-3">
+          <div><dt class="text-muted">Name</dt><dd>{profile.name}{profile.pronouns && <span class="text-muted"> ({profile.pronouns})</span>}</dd></div>
+          {profile.publishedAs && <div><dt class="text-muted">Publishes as</dt><dd>{profile.alternateNames.join(' · ')}</dd></div>}
+          <div><dt class="text-muted">Affiliation</dt><dd>{profile.affiliation.department}, {profile.affiliation.name}</dd></div>
+          <div><dt class="text-muted">Based in</dt><dd>{profile.location.display}</dd></div>
+          {profile.availability && <div><dt class="text-muted">Open to</dt><dd>{profile.availability}</dd></div>}
+        </dl>
+      </div>
+    </aside>
+  </div>
+</BaseLayout>

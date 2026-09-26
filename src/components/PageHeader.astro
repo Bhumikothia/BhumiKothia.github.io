@@ -1,0 +1,28 @@
+---
+import FlocMotif from './FlocMotif.astro';
+import Figure from './Figure.astro';
+import type { PhotoKey } from '../lib/images';
+
+interface Props {
+  eyebrow?: string;
+  title: string;
+  lead?: string;
+  /** Optional illustrative photo shown beside the title */
+  photo?: PhotoKey;
+}
+const { eyebrow, title, lead, photo } = Astro.props;
+---
+
+<div class="relative overflow-hidden border-b border-line">
+  <div class="bg-plate pointer-events-none absolute inset-0 [mask-image:linear-gradient(to_bottom,black,transparent)]" aria-hidden="true"></div>
+  {!photo && <FlocMotif class="pointer-events-none absolute -top-4 -right-8 hidden w-96 text-accent/20 sm:block" />}
+  <div class:list={['container-page relative py-14 sm:py-20', photo && 'grid items-center gap-10 lg:grid-cols-[1fr_24rem]']}>
+    <div>
+      {eyebrow && <p class="eyebrow mb-3">{eyebrow}</p>}
+      <h1 class="max-w-3xl text-4xl leading-tight font-semibold sm:text-5xl">{title}</h1>
+      {lead && <p class="mt-5 max-w-2xl text-lg leading-relaxed text-muted">{lead}</p>}
+      <slot />
+    </div>
+    {photo && <Figure photo={photo} aspect="aspect-[4/3]" sizes="(min-width: 1024px) 24rem, 100vw" eager showCaption={false} class="max-w-md lg:max-w-none" />}
+  </div>
+</div>

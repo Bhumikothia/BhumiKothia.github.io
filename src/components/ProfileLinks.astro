@@ -1,0 +1,41 @@
+---
+import Icon from './Icon.astro';
+import { href } from '../lib/format';
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  profile: CollectionEntry<'profile'>['data'];
+  showCv?: boolean;
+  class?: string;
+}
+const { profile, showCv = true, class: cls = '' } = Astro.props;
+
+const items = [
+  { key: 'googleScholar', label: 'Google Scholar', icon: 'scholar' },
+  { key: 'orcid', label: 'ORCID', icon: 'orcid' },
+  { key: 'linkedin', label: 'LinkedIn', icon: 'linkedin' },
+  { key: 'researchgate', label: 'ResearchGate', icon: 'researchgate' },
+] as const;
+---
+
+<ul class:list={['flex flex-wrap gap-2', cls]}>
+  {showCv && profile.cv && (
+    <li>
+      <a class="btn btn-primary" href={href(profile.cv)} download>
+        <Icon name="download" />
+        Download CV
+      </a>
+    </li>
+  )}
+  {items.map((item) =>
+    profile.links[item.key] ? (
+      <li>
+        <a class="btn" href={profile.links[item.key]} rel="me noopener" target="_blank">
+          <Icon name={item.icon} />
+          {item.label}
+          <span class="sr-only">(opens in a new tab)</span>
+        </a>
+      </li>
+    ) : null,
+  )}
+</ul>

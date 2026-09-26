@@ -1,0 +1,38 @@
+---
+/**
+ * Shows an email link that scrapers cannot read from the HTML.
+ * The address is stored reversed and base64-encoded, and assembled in the
+ * visitor's browser. Without JavaScript, a human-readable hint is shown.
+ */
+import Icon from './Icon.astro';
+
+interface Props {
+  email: string;
+  class?: string;
+}
+const { email, class: cls = 'btn btn-primary' } = Astro.props;
+const encoded = btoa(email.split('').reverse().join(''));
+const [user, domain] = email.split('@');
+const hint = `${user} [at] ${domain.replace(/\./g, ' [dot] ')}`;
+---
+
+<span class="obf-email" data-e={encoded}>
+  <a class={cls} href="#" data-mail hidden>
+    <Icon name="mail" />
+    <span data-mail-text>Email</span>
+  </a>
+  <noscript><span class="font-medium">{hint}</span></noscript>
+</span>
+
+<script>
+  document.querySelectorAll<HTMLElement>('.obf-email').forEach((el) => {
+    const encoded = el.dataset.e;
+    const link = el.querySelector<HTMLAnchorElement>('[data-mail]');
+    if (!encoded || !link) return;
+    const address = atob(encoded).split('').reverse().join('');
+    link.href = `mailto:${address}`;
+    const text = link.querySelector('[data-mail-text]');
+    if (text) text.textContent = address;
+    link.hidden = false;
+  });
+</script>

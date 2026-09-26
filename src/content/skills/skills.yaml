@@ -1,0 +1,50 @@
+# Skill groups shown on the Education & Skills page.
+# Only list skills Bhumi can demonstrate. Sources: CV, LinkedIn.
+# TODO: SEM/TEM and other instrument techniques are NOT listed because they do
+#       not appear in her CV or LinkedIn. Add them here only if confirmed.
+- id: lab
+  name: Laboratory & microbiology
+  order: 1
+  items:
+    - Microbial isolation and culturing
+    - Screening of bioflocculant-producing bacteria
+    - Microbial EPS production and characterisation
+    - Biochemical testing and identification
+    - Molecular identification by 16S rRNA gene sequencing
+    - Biosafety and sterilisation
+    - Sample collection and handling
+- id: environmental
+  name: Environmental analysis & compliance
+  order: 2
+  items:
+    - Physicochemical analysis of wastewater
+    - Water quality treatment and monitoring
+    - Environmental field surveys and sampling
+    - Pollution monitoring and control
+    - Environmental compliance and waste management
+    - Environmental health and safety (EHS), risk assessment
+- id: bioinformatics
+  name: Molecular & bioinformatics tools
+  order: 3
+  items:
+    - Geneious Prime
+    - MEGA
+    - NCBI BLAST
+    - ClustalW
+    - EzBioCloud
+    - qPCR analysis
+- id: data
+  name: Statistics & data
+  order: 4
+  items:
+    - Minitab
+    - GraphPad Prism
+    - Microsoft Excel
+- id: communication
+  name: Scientific communication
+  order: 5
+  items:
+    - Scientific writing and manuscript preparation
+    - Research data curation and publication (Mendeley Data, GenBank)
+    - Conference presentations (oral and poster)
+    - Technical documentation and reporting

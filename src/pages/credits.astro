@@ -1,0 +1,30 @@
+---
+import { Image } from 'astro:assets';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+import { photos } from '../lib/images';
+---
+
+<BaseLayout title="Image credits" description="Credits and licences for the illustrative science photos used on this website.">
+  <PageHeader
+    eyebrow="Credits"
+    title="Image credits"
+    lead="The science photos on this site are illustrative. They come from Wikimedia Commons under open licences and do not show Bhumi's own isolates, samples or laboratory."
+  />
+  <div class="container-page py-12">
+    <ul class="grid gap-6 sm:grid-cols-2">
+      {Object.values(photos).map((p) => (
+        <li class="card flex gap-4 p-4">
+          <Image src={p.src} alt="" widths={[160, 320]} sizes="8rem" class="aspect-square w-28 shrink-0 rounded-lg object-cover" />
+          <div class="text-sm">
+            <p class="text-ink">{p.caption}</p>
+            <p class="mt-2 font-mono text-xs text-muted">
+              <a class="link" href={p.source} rel="noopener" target="_blank">{p.author}</a> ·{' '}
+              <a class="link" href={p.licenseUrl} rel="noopener license" target="_blank">{p.license}</a> · via Wikimedia Commons
+            </p>
+          </div>
+        </li>
+      ))}
+    </ul>
+  </div>
+</BaseLayout>
