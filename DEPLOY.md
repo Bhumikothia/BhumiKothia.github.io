@@ -87,7 +87,22 @@ A domain such as `bhumikabariya.com` looks more professional and stays the same 
 2. Choose the **JavaScript snippet** option and copy only the `token` value from the snippet.
 3. Add it as the repository variable `PUBLIC_CF_ANALYTICS_TOKEN` (step 4) and re-run the workflow.
 
-## 7. Help Google find the site
+## Keeping the site hidden while she edits
+
+By default the site is **hidden from search engines**. Every page carries a `noindex` tag, and `robots.txt` asks all crawlers (Google, Bing, AI bots) to stay out. Anyone with the link can still open it.
+
+For stronger privacy before launch:
+
+- **Keep the repository Private** (**Settings → General → Danger Zone → Change visibility**). Nobody can see the code or content, but the free GitHub plan will not publish Pages from a private repository, so nothing is online at all.
+- **Don't link the site anywhere** (ORCID, LinkedIn, email signatures) until launch.
+
+**At launch:**
+1. Make the repository **Public** (if it was private) and turn on Pages (step 3).
+2. Add the repository variable **`SITE_INDEXING`** with the value **`on`** (Settings → Secrets and variables → Actions → Variables).
+3. Run **Actions → Deploy to GitHub Pages → Run workflow**.
+4. Then do step 7 below.
+
+## 7. Help Google find the site (only after launch)
 
 1. Open [Google Search Console](https://search.google.com/search-console), add the site as a **URL prefix** property and verify it. The "HTML tag" method is easiest: send the tag to whoever maintains the site to add it, or use DNS verification if you use a custom domain.
 2. Under **Sitemaps**, submit `sitemap-index.xml`.

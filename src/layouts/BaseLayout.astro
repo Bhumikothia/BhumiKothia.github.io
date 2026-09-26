@@ -31,6 +31,8 @@ const fullTitle = title
   : `${nameWithAlias} | Environmental Microbiology & Wastewater Treatment Researcher`;
 const ogImage = new URL('og-default.png', root).href;
 const cfToken = import.meta.env.PUBLIC_CF_ANALYTICS_TOKEN;
+// Search engines are told NOT to index the site until SITE_INDEXING=on (see DEPLOY.md).
+const allowIndexing = import.meta.env.SITE_INDEXING === 'on';
 
 const structured = [person(profile, root), ...jsonLd];
 const year = new Date().getFullYear();
@@ -44,6 +46,7 @@ const year = new Date().getFullYear();
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     <meta name="author" content={profile.name} />
+    {!allowIndexing && <meta name="robots" content="noindex, nofollow, noarchive" />}
     <link rel="canonical" href={canonical} />
     <link rel="preload" href={serifFont} as="font" type="font/woff2" crossorigin />
     <link rel="preload" href={bodyFont} as="font" type="font/woff2" crossorigin />

@@ -45,6 +45,8 @@ jobs:
           # Set these under Settings → Secrets and variables → Actions → Variables.
           PUBLIC_CF_ANALYTICS_TOKEN: ${{ vars.PUBLIC_CF_ANALYTICS_TOKEN }}
           CONTACT_EMAIL: ${{ vars.CONTACT_EMAIL }}
+          # Leave unset while editing (site is hidden from search engines). Set to "on" at launch.
+          SITE_INDEXING: ${{ vars.SITE_INDEXING }}
 
       - uses: actions/upload-pages-artifact@v3
         with:
